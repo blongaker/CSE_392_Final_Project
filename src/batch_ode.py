@@ -1,38 +1,44 @@
 import cupy as cp
-from solvers import solvers_module
-from right_hand_sides import rhs_module
+from solvers import ODESolver
+from right_hand_sides import DifferentialEquation
 
-def batched_ode_solve(
-    fun: function,
-    t_span,
-    y0,
-    params,
-    t_eval=None
-):
-    """
-    A batched ODE solver.
 
-    Args:
-        fun (function): The right-hand side function. Takes a single state and parameter vector.
-        t_span (_type_): The time integration range.
-        y0 (_type_): The matrix of initial states. Each row is a single state.
-        params (_type_): The matrix of parameters. Each row is a single parameter vector.
-        t_eval (None, optional): The times to return for the solver. If None, then we only return the state at the final time. Otherwise, we return a tensor.
-    """
-    return 67
+class BatchedODESolver:
+
+    def __init__(self, diffeq: DifferentialEquation, t: float, y: cp.ndarray, params: cp.ndarray, t_eval, solver: ODESolver):
+        
+        # Record dimensions and make sure shapes match
+        n_odes, n_vars = y.shape
+        n_odes_2, n_params = params.shape
+        assert n_odes == n_odes_2
+
+        # Save everything
+        self.n_odes = n_odes
+        self.n_vars = n_vars
+        self.n_params = n_params
+        self.diffeq = diffeq
+        self.t      = t
+        self.y      = y
+        self.params = params
+        self.t_eval = t_eval
+        self.solver = solver
+
+        # Extract the right-hand side kernel
+        ptr_rhs = diffeq.rhs_module.get_global('ptr_rhs')
+        self.rhs_addr = cp.ndarray(shape=(1,), dtype=cp.uint64, memptr=ptr_rhs)
+
+        # All kernels already compiled? Just need the pointer to the rhs function
+        self.timestep_kernel = solver.ode_solver_raw_kernel.get_function('timestep_kernel')
+
+
+    def step(self, dt: float, threads: int = 256):
+        # Launch the Kernel for a single step
+        blocks = (self.n_odes + threads - 1) // threads
+        self.timestep_kernel((blocks,), (threads,), (rhs_addr[0], self.t, dt, self.y, self.params))
+
 
 
 if __name__ == '__main__':
-
-    kernel = solvers_module.get_function('forward_euler_kernel')
-
-    # Load data
-    n_odes = 100000
-    n_vars = 2
-    n_params = 4
-    y_gpu = cp.random.uniform(-1, 1, (n_odes, n_vars))
-    params = cp.random.uniform(0, 1, (n_odes, n_params))
-    t_span = [0, 1]
 
     # Print input
     print('Input (first two states):')
