@@ -1,6 +1,7 @@
 import cupy as cp
 import numpy as np
 from solvers import ODESolver, ForwardEulerSolver
+import time
 
 
 class BatchedODESolver:
@@ -46,9 +47,7 @@ dydt[3] = (y[4] - y[1]) * y[2] - y[3] + p[0];
 dydt[4] = (y[0] - y[2]) * y[3] - y[4] + p[0];
 '''
 
-
-
-if __name__ == '__main__':
+def lorenz96_example():
 
     # LORENZ96 EXAMPLE
 
@@ -70,13 +69,49 @@ if __name__ == '__main__':
     batched_ode_solver = BatchedODESolver(forward_euler_solver, 0, y, p)
 
     # Launch the Kernel for a single step
-    batched_ode_solver.step(0.01)
+    batched_ode_solver.launch(0.01)
 
     # Output
     print('t=0.01 (first two states):')
     print(y[:2])
 
     # One more time for good measure
-    batched_ode_solver.step(0.01)
+    batched_ode_solver.launch(0.01)
     print('t=0.02 (first two states):')
     print(y[:2])
+
+
+def strong_scaling_forward_euler_singlestep_kernel():
+
+    n_odes_vec = [10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000]
+    n_vars = 5
+    n_params = 1
+    time_vec = []
+
+    for n_odes in n_odes_vec:
+
+        # Generate initial condition data
+        y = cp.random.uniform(-5, 5, (n_odes, n_vars), dtype=cp.float32) # type: ignore
+        p = cp.random.uniform( 1, 5, (n_odes, n_params), dtype=cp.float32) # type: ignore
+
+        start_time = time.perf_counter()
+
+        # Batched ODE Solve
+        forward_euler_solver = ForwardEulerSolver(lorenz96, n_odes, n_vars, n_params)
+        batched_ode_solver = BatchedODESolver(forward_euler_solver, 0, y, p)
+        batched_ode_solver.launch(dt=0.1)
+
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        time_vec.append(elapsed_time)
+
+    
+
+
+
+
+
+if __name__ == '__main__':
+    lorenz96_example()
+
+
