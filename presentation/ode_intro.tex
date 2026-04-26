@@ -1,0 +1,55 @@
+\section{Initial Value Problems (IVPs)}
+
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bp}{\mathbf{p}}
+\begin{frame}
+$$\begin{cases}
+    \dot{\by} = f(t, \by; \bp),  \\
+    \by(t_0) = \by_0,
+\end{cases}$$
+$\by(t)$: state vector, $\bp$: vector of fixed parameters. Goal: given \underline{many} different $\by_0, \bp$, compute $\by(t_f)$ for each system.
+
+\begin{itemize}
+    \item Important application: astrochemistry/combustion. We need to solve one IVP for each spatial grid cell, for each (outer loop) time step. This is a major computational bottleneck in these simulations; it is necessary to have surrogate/fast batched solver.
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Time Stepping}
+The two most simple time integrators are \textbf{forward} and \textbf{backward Euler}:
+\begin{gather}
+\by_{k+1} = \by_k + \Delta t \cdot f(t_k, \by_k; \bp) \tag{FE} \\
+\by_{k+1} = \by_k + \Delta t \cdot f(t_k, \by_{k+1}; \bp)\label{eq:BE} \tag{BE} 
+\end{gather}
+
+
+\begin{itemize}
+    \item Both extremely simple to implement, assuming the time step is fixed.\ \eqref{eq:BE} requires a nonlinear equation solver. To parallelize: solve one ODE per thread.
+    \item As $\Delta t \to 0$, the numerical solution approaches the true solution.
+    \item These are examples of \textbf{first-order methods}: the error of the solution decreases at a linear rate.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Adaptive Time-Stepping}
+In most applications, we would like to change the time step to match the dynamics. This is done by considering two time-steppers of different order and comparing the difference. For example: \textbf{RK23} (Bogacki, Shampine 1997):
+\small{
+\begin{align*}
+    k_1 &= f(t_k, \by_k) \\
+    k_2 &= f\left(t_k + \frac{\Delta t}{2}, \by_k + \frac{\Delta t}{2}k_1\right) \\
+    k_3 &= f\left(t_k + \frac{3\Delta t}{4}, \by_k + \frac{3\Delta t}{4}k_2\right) \\
+    \by_{k+1}^{(3)} &= \by_k + \frac{\Delta t}{9}(2k_1 + 3k_2 + 4k_3) \\
+    t_{k+1} &= t_k + \Delta t \\
+    k_4 &= f\left(t_{k+1}, y_{k+1}^{(3)}\right) \\
+    e_{k+1} &= \frac{\Delta t}{72}(-5k_1 + 6k_2 + 8k_3 - 9k_4).
+\end{align*}}
+\end{frame}
+\begin{frame}
+This is a third-order method. The size of $e_{k+1}$ determines the size of the next time step. For example:
+$$\Delta t^{(k+1)} = 0.9 * \Delta t^{(k)} * \left(\frac{\epsilon_{\mathrm{tol}}}{e^{k+1}}\right)^{0.2}.$$
+\textbf{From this, a parallel computing challenge for GPUs arises.}
+\begin{itemize}
+    \item If each ODE is solved on a single thread, some ODEs may reach $t_f$ faster than others. Hence many threads will remain idle while the others finish.
+    \item SIMT will break: we would like similar time steps to take place on the same block.
+    \item Solution: cluster the initial conditions and parameters. Sort these before launching, so that each warp contains ODEs that are similar to each other. This maxmimizes synchronization inside thread blocks.
+\end{itemize}
+\end{frame}

@@ -1,0 +1,77 @@
+% !TeX program = lualatex
+\documentclass[
+	english,
+	sections numbered,
+	xcolor=dvipsnames,
+	aspectratio=169,
+]{beamer}
+
+\usepackage{babel}
+\usepackage[babel]{microtype}
+\usepackage[babel]{csquotes}
+\usepackage[american]{isodate}
+
+\usepackage[T1]{fontenc}
+\usepackage{FiraMono}
+
+\usetheme[progressbar=frametitle]{metropolis}
+
+%%% GRAPHICS %%%
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{tikz}
+
+%%% MATH & SCIENCE %%%
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{siunitx}
+\usepackage{bm}
+\usepackage{dsfont}
+\usepackage{mathtools}
+
+%%% FLOATS %%%
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+%\usepackage{biblatex}
+%\bibliography{literature.bib}
+
+
+\input{setup-colors.tex}
+\input{setup-beamer.tex}
+\input{setup-math.tex}
+\input{setup-plots.tex}
+
+
+\title{Solving Batched Initial Value Problems on GPUs}
+\author{Ben Longaker\inst{1}}
+\institute[]{%
+	\inst{1} The University of Texas at Austin, Oden Institute for Computational Engineering and Sciences
+}
+\date{April 30, 2026}
+
+\titlegraphic{\includegraphics[height=.3\textheight]{ut_logo.png}}
+
+
+\begin{document}
+\maketitle
+
+
+%%% Intro to the problem
+% Introduce systems of ODEs, why we care about batched, and a quick intro to time-stepping methods
+% From these, introduce the two basic time stepping methods
+\input{ode_intro.tex}
+
+% Step 1: build basic batched ODE solver. Explicit time stepping, constant step size, one ODE per thread
+\input{simple_batched_ode.tex}
+
+% Step 2: create a basic implicit time stepper.
+
+% Step 3: introduce non-uniform time stepping
+% New time stepping method: RK23
+% Present challenges
+% 
+
+\end{document}

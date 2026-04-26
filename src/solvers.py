@@ -21,6 +21,10 @@ extern "C" {
     // Contains RHS_HERE (the rhs code), N_ODES (number of ODEs), N_VARS (number of ODE variables), N_PARAMS (number of rhs parameters)
     // Dollar signs are where we replace the variable in the string before compiling
 
+    __device__ void rhs(float* dydt, float t, float* y, float* p) {
+        $RHS_HERE$
+    }
+
     __global__ void timestep_kernel(float t, float dt, float* y_all, float* params) {
         int i = blockDim.x * blockIdx.x + threadIdx.x;
         
@@ -37,7 +41,7 @@ extern "C" {
 
             // 2. Compute RHS
             float dydt[$N_VARS$];
-            $RHS_HERE$
+            rhs(dydt, t, y, p);
 
             // 3. Update and write back
             for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] += dt * dydt[d];
@@ -48,3 +52,51 @@ extern "C" {
 
         super().__init__(forward_euler_cuda_code_template, rhs_code, n_odes, n_vars, n_params)
 
+
+class ForwardEulerSolverMultistep(ODESolver):
+
+    def __init__(self, rhs_code: str, n_odes: int, n_vars: int, n_params: int):
+
+        forward_euler_cuda_code_template = \
+r'''
+extern "C" {
+                              
+    // Contains RHS_HERE (the rhs code), N_ODES (number of ODEs), N_VARS (number of ODE variables), N_PARAMS (number of rhs parameters)
+    // Dollar signs are where we replace the variable in the string before compiling
+
+    __device__ void rhs(float* dydt, float t, float* y, float* p) {
+        $RHS_HERE$
+    }
+
+    __global__ void timestep_kernel(float t0, float dt, float tf, float* y_all, float* params) {
+        int i = blockDim.x * blockIdx.x + threadIdx.x;
+        
+        if (i < $N_ODES$) {
+
+            int ode_offset = i * $N_VARS$;
+            int param_offset = i * $N_PARAMS$;
+            float y[$N_VARS$];
+            float p[$N_PARAMS$];
+            float dydt[$N_VARS$];
+
+            // 1. Load current state and parameters into registers
+            for(int d=0; d < $N_VARS$; d++) y[d] = y_all[ode_offset + d];
+            for(int j=0; j < $N_PARAMS$; j++) p[j] = params[param_offset + j];
+
+            // Loop!
+            for(float t_curr = t0; t_curr < tf; t_curr += dt) {
+                // Compute RHS
+                rhs(dydt, t_curr, y, p);
+
+                // Update current state
+                for(int d=0; d < $N_VARS$; d++) y[d] += dt * dydt[d];
+            }
+
+            // 3. Write back
+            for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] = y[d]
+        }
+    }
+}
+'''
+
+        super().__init__(forward_euler_cuda_code_template, rhs_code, n_odes, n_vars, n_params)

@@ -1,0 +1,4 @@
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\beamer@sectionintoc {1}{Initial Value Problems (IVPs)}{2}{0}{1}
+\beamer@sectionintoc {2}{Step 1: Build a very simple batched IVP solver}{7}{0}{2}
