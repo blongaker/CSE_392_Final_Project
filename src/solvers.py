@@ -93,10 +93,77 @@ extern "C" {
             }
 
             // 3. Write back
-            for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] = y[d]
+            for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] = y[d];
         }
     }
 }
 '''
 
         super().__init__(forward_euler_cuda_code_template, rhs_code, n_odes, n_vars, n_params)
+
+
+
+class RK23SolverVarstep(ODESolver):
+
+    def __init__(self, rhs_code: str, n_odes: int, n_vars: int, n_params: int):
+
+        forward_euler_cuda_code_template = \
+r'''
+extern "C" {
+                              
+    // Contains RHS_HERE (the rhs code), N_ODES (number of ODEs), N_VARS (number of ODE variables), N_PARAMS (number of rhs parameters)
+    // Dollar signs are where we replace the variable in the string before compiling
+
+    __device__ void rhs(float* dydt, float t, float* y, float* p) {
+        $RHS_HERE$
+    }
+
+    __global__ void timestep_kernel(float t0, float dt, float tf, float* y_all, float* params, float tol) {
+        int i = blockDim.x * blockIdx.x + threadIdx.x;
+        
+        if (i < $N_ODES$) {
+
+            int ode_offset = i * $N_VARS$;
+            int param_offset = i * $N_PARAMS$;
+            float y[$N_VARS$];
+            float p[$N_PARAMS$];
+            float dydt[$N_VARS$];
+
+            // 1. Load current state and parameters into registers
+            for(int d=0; d < $N_VARS$; d++) y[d] = y_all[ode_offset + d];
+            for(int j=0; j < $N_PARAMS$; j++) p[j] = params[param_offset + j];
+
+            // Loop!
+            dt_curr = dt;
+            float t_curr = t0;
+            float k1[$N_VARS$], k2[$N_VARS$], k3[$N_VARS$], k4[$N_VARS$];
+            float error;
+            while () {
+                // Compute RHS
+                rhs(k1, t_curr, y, p);
+                rhs(k2, t_curr + 0.5 * dt_curr, y + 0.5 * dt_curr * k1, p);
+                rhs(k3, t_curr + 0.75 * dt_curr, y + 0.75 * dt_curr * k2, p);
+
+                // Update current state
+                for(int d=0; d < $N_VARS$; d++) y[d] += dt * (2*k1[d]+3*k2[d]+4*k3[d]) / 9;
+            
+                // Update time
+                t_curr += dt_curr;
+
+                // Compute error and next time step
+                rhs(k4, t_curr + dt_curr, y, p);
+                error = dt_curr * (-5*k1 + 6*k2 + 8*k3 - 9*k4) / 72;
+                dt_curr = 0.9 * dt_curr * powf(tol / error, 0.2);
+            }
+
+            // Update state
+            for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] = y[d];
+
+        }
+    }
+}
+'''
+        super().__init__(forward_euler_cuda_code_template, rhs_code, n_odes, n_vars, n_params)
+
+
+
