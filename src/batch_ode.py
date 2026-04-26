@@ -1,18 +1,16 @@
 import cupy as cp
 import numpy as np
 from solvers import ODESolver, ForwardEulerSolver
-from right_hand_sides import DifferentialEquation
 
 
 class BatchedODESolver:
 
     def __init__(
             self,
-            diffeq: DifferentialEquation,
+            solver: ODESolver,
             t: float,
             y: cp.ndarray,
             params: cp.ndarray,
-            solver: ODESolver
         ):
 
         n_odes, n_vars = y.shape
@@ -23,36 +21,34 @@ class BatchedODESolver:
         self.n_odes = n_odes
         self.n_vars = n_vars
         self.n_params = n_params
-        self.diffeq = diffeq
         self.t      = t
         self.y      = y
         self.params = params
         self.solver = solver
 
-        # Extract the right-hand side kernel
-        ptr_rhs = diffeq.rhs_module.get_global('ptr_rhs')
-        self.rhs_addr = cp.ndarray(shape=(1,), dtype=cp.uint64, memptr=ptr_rhs)
-
-        # All kernels already compiled? Just need the pointer to the rhs function
-        self.timestep_kernel = solver.ode_solver_raw_kernel.get_function('timestep_kernel')
+        # Compile the kernel function
+        self.timestep_kernel = solver.ode_solver_raw_module.get_function('timestep_kernel')
 
 
     def step(self, dt: float, threads: int = 256):
         # Launch the Kernel for a single step
         blocks = (self.n_odes + threads - 1) // threads
-        self.timestep_kernel((blocks,), (threads,), (self.rhs_addr[0], np.float32(self.t), np.float32(dt), self.y, self.params))
+        self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), self.y, self.params))
+        cp.cuda.Device().synchronize()
         self.t += dt
 
 
 
 if __name__ == '__main__':
 
+    # LORENZ96 EXAMPLE
+
     # Generate initial condition data
     n_odes = 1000000
-    n_vars = 2
-    n_params = 4
-    y = cp.random.uniform(-1, 1, (n_odes, n_vars), dtype=cp.float32) # type: ignore
-    p = cp.random.uniform( 0, 1, (n_odes, n_params), dtype=cp.float32) # type: ignore
+    n_vars = 5
+    n_params = 1
+    y = cp.random.uniform(-5, 5, (n_odes, n_vars), dtype=cp.float32) # type: ignore
+    p = cp.random.uniform( 1, 5, (n_odes, n_params), dtype=cp.float32) # type: ignore
 
     # Print input
     print('Parameters:')
@@ -61,14 +57,16 @@ if __name__ == '__main__':
     print(y[:2])
 
     # Batched ODE Solve
-    lotka_volterra = DifferentialEquation(
-        cuda_code = r'''
-            dydt[0] =  p[0] * y[0] - p[1] * y[0] * y[1];
-            dydt[1] = -p[3] * y[1] + p[3] * y[0] * y[1];
-        '''
-    )
-    forward_euler_solver = ForwardEulerSolver(n_odes, n_vars, n_params)
-    batched_ode_solver = BatchedODESolver(lotka_volterra, 0, y, p, forward_euler_solver)
+    lorenz96 = '''
+    dydt[0] = (y[1] - y[3]) * y[4] - y[0] + p[0];
+    dydt[1] = (y[2] - y[4]) * y[0] - y[1] + p[0];
+    dydt[2] = (y[3] - y[0]) * y[1] - y[2] + p[0];
+    dydt[3] = (y[4] - y[1]) * y[2] - y[3] + p[0];
+    dydt[4] = (y[0] - y[2]) * y[3] - y[4] + p[0];
+    '''
+
+    forward_euler_solver = ForwardEulerSolver(lorenz96, n_odes, n_vars, n_params)
+    batched_ode_solver = BatchedODESolver(forward_euler_solver, 0, y, p)
 
     # Launch the Kernel for a single step
     batched_ode_solver.step(0.01)
