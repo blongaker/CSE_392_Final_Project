@@ -2,8 +2,8 @@ import cupy as cp
 
 class ODESolver:
 
-    def __init__(self, cuda_code: str, n_vars: int, n_params: int):
-        self.cuda_code = cuda_code.replace('$N_VARS$', str(n_vars)).replace('$N_PARAMS$', str(n_params))
+    def __init__(self, cuda_code: str, n_odes: int, n_vars: int, n_params: int):
+        self.cuda_code = cuda_code.replace('$N_ODES$', str(n_odes)).replace('$N_VARS$', str(n_vars)).replace('$N_PARAMS$', str(n_params))
         self.n_vars = n_vars
         self.n_params = n_params
         self.ode_solver_raw_kernel = cp.RawModule(code=self.cuda_code)
@@ -11,12 +11,13 @@ class ODESolver:
 
 class ForwardEulerSolver(ODESolver):
 
-    def __init__(self, n_vars: int, n_params: int):
+    def __init__(self, n_odes: int, n_vars: int, n_params: int):
 
         forward_euler_cuda_code_template = r'''
 extern "C" {
                               
-    // Contains N_SYSTEMS (number of ODEs), $N_VARS$ (number of ODE variables), $N_PARAMS$ (number of rhs parameters)
+    // Contains N_ODES (number of ODEs), N_VARS (number of ODE variables), N_PARAMS (number of rhs parameters)
+    // Dollar signs are where we replace the variable in the string before compiling
 
     // RHSFunc: (dydt_out, t, y_in, params)
     typedef void (*RHSFunc)(float*, const float, float*, const float*);
@@ -24,7 +25,8 @@ extern "C" {
     __global__ void timestep_kernel(RHSFunc rhs, float t, float dt, float* y_all, float* params) {
         int i = blockDim.x * blockIdx.x + threadIdx.x;
         
-        if (i < n_systems) {
+        if (i < $N_ODES$) {
+
             int ode_offset = i * $N_VARS$;
             int param_offset = i * $N_PARAMS$;
             float y_local[$N_VARS$];
@@ -33,18 +35,17 @@ extern "C" {
 
             // 1. Load current state and parameters into registers
             for(int d=0; d < $N_VARS$; d++) y_local[d] = y_all[ode_offset + d];
-            for(int p=0; p < $N_PARAMS$; p++) params_local[p] = params[param_offset + p]
+            for(int p=0; p < $N_PARAMS$; p++) params_local[p] = params[param_offset + p];
 
             // 2. Compute RHS
             rhs(dydt_local, t, y_local, params_local);
+            // for(int d=0; d < $N_VARS$; d++) dydt_local[d] = 1.0f;
 
             // 3. Update and write back
-            for(int d=0; d < $N_VARS$; d++) {
-                y_all[ode_offset + d] = y_local[d] + dt * dydt_local[d];
-            }
+            for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] += dt * dydt_local[d];
         }
     }
 }
 '''
 
-        super().__init__(forward_euler_cuda_code_template, n_vars, n_params)
+        super().__init__(forward_euler_cuda_code_template, n_odes, n_vars, n_params)
