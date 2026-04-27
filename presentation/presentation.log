@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.16.0 (TeX Live 2023)  (format=lualatex 2023.8.20)  26 APR 2026 15:53
+This is LuaHBTeX, Version 1.16.0 (TeX Live 2023)  (format=lualatex 2023.8.20)  27 APR 2026 13:33
  restricted system commands enabled.
  file:line:error style messages enabled.
 **"/Users/blongaker/Documents/School Stuff/CSE 392 Parallel Algorithms/Project/CSE_392_Final_Project/presentation/presentation"
@@ -1593,6 +1593,10 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 ] [10
 
+] [11
+
+] [12
+
 ])
 \tf@nav=\write6
 
@@ -1609,19 +1613,19 @@ Package rerunfilecheck Info: File `presentation.out' has not changed.
 )
 
 Here is how much of LuaTeX's memory you used:
- 48477 strings out of 478285
+ 48483 strings out of 478285
  125031,1977958 words of node,token memory allocated
- 964 words of node memory still in use:
-   13 hlist, 6 vlist, 2 rule, 1 local_par, 11 glue, 5 kern, 8 penalty, 3 glyph, 53 attribute, 72 glue_spec, 28 attribute_list, 4 write, 1 pdf_action, 4 pdf_colorstack nodes
-   avail lists: 1:4,2:1036,3:189,4:278,5:339,6:31,7:2315,8:35,9:740,10:17,11:111
- 66683 multiletter control sequences out of 65536+600000
+ 947 words of node memory still in use:
+   13 hlist, 6 vlist, 2 rule, 1 local_par, 11 glue, 4 kern, 8 penalty, 3 glyph, 49 attribute, 72 glue_spec, 26 attribute_list, 4 write, 1 pdf_action, 4 pdf_colorstack nodes
+   avail lists: 1:4,2:1042,3:202,4:290,5:383,6:31,7:2316,8:33,9:740,10:17,11:111
+ 66685 multiletter control sequences out of 65536+600000
  135 fonts using 26089975 bytes
  128i,13n,131p,2011b,853s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraMono-Regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/lm/lmroman8-regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-LightItalic.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/lm/lmromandemi10-regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-Light.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-Regular.otf></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on presentation.pdf (10 pages, 178316 bytes).
+Output written on presentation.pdf (12 pages, 181477 bytes).
 
-PDF statistics: 158 PDF objects out of 1000 (max. 8388607)
- 111 compressed objects within 2 object streams
- 24 named destinations out of 1000 (max. 131072)
+PDF statistics: 170 PDF objects out of 1000 (max. 8388607)
+ 121 compressed objects within 2 object streams
+ 28 named destinations out of 1000 (max. 131072)
  32 words of extra memory for PDF output out of 10000 (max. 100000000)
 

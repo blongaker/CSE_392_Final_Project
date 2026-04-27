@@ -10,7 +10,7 @@ $$\begin{cases}
 $\by(t)$: state vector, $\bp$: vector of fixed parameters. Goal: given \underline{many} different $\by_0, \bp$, compute $\by(t_f)$ for each system.
 
 \begin{itemize}
-    \item Important application: astrochemistry/combustion. We need to solve one IVP for each spatial grid cell, for each (outer loop) time step. This is a major computational bottleneck in these simulations; it is necessary to have surrogate/fast batched solver.
+    \item Important application: astrochemistry. We need to solve a large IVP for each spatial grid cell, for each (outer loop) time step. This is a major computational bottleneck in these simulations; it is necessary to have surrogate/fast batched solver.
 \end{itemize}
     
 \end{frame}
@@ -44,9 +44,11 @@ In most applications, we would like to change the time step to match the dynamic
 \end{align*}}
 \end{frame}
 \begin{frame}
-This is a third-order method. The size of $e_{k+1}$ determines the size of the next time step. For example:
-$$\Delta t^{(k+1)} = 0.9 * \Delta t^{(k)} * \left(\frac{\epsilon_{\mathrm{tol}}}{e^{k+1}}\right)^{0.2}.$$
-\textbf{From this, a parallel computing challenge for GPUs arises.}
+\begin{itemize}
+    \item If $\|e_{k+1}\| > \epsilon_{\mathrm{tol}}$, we shrink the time step and recompute. In either case we compute a new time step to use for the next:
+\end{itemize}
+$$\Delta t^{(k+1)} = \Delta t^{(k)} * \left(\frac{\epsilon_{\mathrm{tol}}}{\|e_{k+1}\|}\right)^{0.2}.$$
+\textbf{Interesting GPU problems:}
 \begin{itemize}
     \item If each ODE is solved on a single thread, some ODEs may reach $t_f$ faster than others. Hence many threads will remain idle while the others finish.
     \item SIMT will break: we would like similar time steps to take place on the same block.

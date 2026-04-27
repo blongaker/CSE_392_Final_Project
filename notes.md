@@ -34,6 +34,7 @@ ___MONDAY TODO___:
 ___TUESDAY TODO___:
 - Put together slides
 - Benchmark performance
+- Compare to serial Python code
 
 ___WEDNESDAY TODO___:
 - Final touches
