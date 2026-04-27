@@ -163,27 +163,22 @@ extern "C" {
 
                 // Compute error
                 rhs(k4, t_curr + dt_curr, y_next, p);
+                error_norm = 0.0f;
                 for(int d=0; d < $N_VARS$; d++)
-                    error_norm += dt_curr * (-5*k1[d]+6*k2[d]+8*k3[d]-9*k4[d]) / 72;
+                    error_norm += powf(dt_curr * (-5*k1[d]+6*k2[d]+8*k3[d]-9*k4[d]) / 72, 2);
                 error_norm = powf(error_norm, 0.5);
 
                 // Accept or reject solution based on error_norm
                 // Introducing thread divergence here
-                // if (error_norm < tol) {
-                //     // Accept step
-                //     t_curr += dt_curr;
-                //     for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
-                // } // Otherwise do nothing; reject step
-
-                for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
-                t_curr += dt_curr;
-
-                if (i == 0) {
-                    printf("Thread %d, step %d: old dt_curr: %f\n", i, n_steps, dt_curr);
-                }
+                if (error_norm < tol) {
+                    // Accept step
+                    t_curr += dt_curr;
+                    for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
+                    t_curr += dt_curr
+                } // Otherwise do nothing; reject step
                 
                 // Compute next time step
-                dt_curr = min(dt_curr * powf(tol / error_norm, 0.2), tf - t_curr);
+                dt_curr = min(dt_curr * powf(tol / (error_norm + 1.0e-6), 0.2), tf - t_curr);
 
                 if (i == 0) {
                     printf("Thread %d, step %d: new dt_curr: %f\n", i, n_steps, dt_curr);
@@ -199,57 +194,4 @@ extern "C" {
     }
 }
 '''
-        super().__init__(forward_euler_cuda_code_template, rhs_code, n_odes, n_vars, n_params)
-
-
-
-
-class BackwardEulerSolver(ODESolver):
-
-    def __init__(self, rhs_code: str, n_odes: int, n_vars: int, n_params: int):
-
-        forward_euler_cuda_code_template = \
-r'''
-extern "C" {
-
-    // Contains RHS_HERE (the rhs code), N_ODES (number of ODEs), N_VARS (number of ODE variables), N_PARAMS (number of rhs parameters)
-    // Dollar signs are where we replace the variable in the string before compiling
-
-    __device__ void rhs(float* dydt, float t, float* y, float* p) {
-        $RHS_HERE$
-    }
-
-    __device__ void jac(float* J, )
-
-    __global__ void timestep_kernel(float t, float dt, float* y_all, float* params) {
-        int i = blockDim.x * blockIdx.x + threadIdx.x;
-        
-        if (i < $N_ODES$) {
-
-            int ode_offset = i * $N_VARS$;
-            int param_offset = i * $N_PARAMS$;
-            float y[$N_VARS$];
-            float p[$N_PARAMS$];
-
-            // Load current state and parameters into registers
-            for(int d=0; d < $N_VARS$; d++) y[d] = y_all[ode_offset + d];
-            for(int j=0; j < $N_PARAMS$; j++) p[j] = params[param_offset + j];
-
-            // Compute RHS
-            float dydt[$N_VARS$];
-            rhs(dydt, t, y, p);
-
-            // Solve nonlinear system of equations using Newton method.
-            // Use current state as initial condition.
-            // For this, we need the Jacobian and a function to solve the corresponding linear system.
-            // WAY more expensive and probably worse.
-
-
-            // 3. Update and write back
-            for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] += dt * dydt[d];
-        }
-    }
-}
-'''
-
         super().__init__(forward_euler_cuda_code_template, rhs_code, n_odes, n_vars, n_params)
