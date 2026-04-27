@@ -22,6 +22,7 @@ ___Saturday___: created a basic explicit (forward Euler) batched ODE solver. Eac
 ___Sunday:
 - Started putting together slides for presentation
 - Compare the now existing code with launching a time stepping loop inside each kernel. Which is faster? Profile and put these results in a table.
+    - Time stepping loop inside kernel is significantly faster.
 - Implement a variable time stepper (RK23?)
 - How to parallelize this effectively?
     - Cluster initial conditions and parameters
