@@ -132,7 +132,7 @@ extern "C" {
             for(int d=0; d < $N_VARS$; d++) y[d] = y_all[ode_offset + d];
             for(int j=0; j < $N_PARAMS$; j++) p[j] = params[param_offset + j];
 
-            // Loop!
+            // Registers we will need
             float dt_curr = dt;
             float t_curr = t0;
             float k1[$N_VARS$];
@@ -141,11 +141,22 @@ extern "C" {
             float k4[$N_VARS$];
             float error_norm;
             float y_next[$N_VARS$];
-            while (t_curr < tf) {
+            int n_steps = 0;
+
+            // Begin timestepping
+            while (t_curr < tf && n_steps < 20) {
+
+                if (i == 0) {
+                    printf("Thread %d, step %d: t_curr = %f\n", i, n_steps, t_curr);
+                }
+
                 // Compute RHS
+                // Use the registers (y_next) we have already allocated for later
                 rhs(k1, t_curr, y, p);
-                rhs(k2, t_curr + 0.5 * dt_curr, y + 0.5 * dt_curr * k1, p);
-                rhs(k3, t_curr + 0.75 * dt_curr, y + 0.75 * dt_curr * k2, p);
+                for(int d=0; d < $N_VARS$; d++) y_next[d] = y[d] + 0.5  * dt_curr * k1[d];
+                rhs(k2, t_curr + 0.5 * dt_curr, y_next, p);
+                for(int d=0; d < $N_VARS$; d++) y_next[d] = y[d] + 0.75 * dt_curr * k2[d];
+                rhs(k3, t_curr + 0.75 * dt_curr, y_next, p);
 
                 // Update current state
                 for(int d=0; d < $N_VARS$; d++) y_next[d] = y[d] + dt * (2*k1[d]+3*k2[d]+4*k3[d]) / 9;
@@ -154,18 +165,31 @@ extern "C" {
                 rhs(k4, t_curr + dt_curr, y_next, p);
                 for(int d=0; d < $N_VARS$; d++)
                     error_norm += dt_curr * (-5*k1[d]+6*k2[d]+8*k3[d]-9*k4[d]) / 72;
-                error_norm = powf(error_norm, 0.5)
+                error_norm = powf(error_norm, 0.5);
 
                 // Accept or reject solution based on error_norm
                 // Introducing thread divergence here
-                if (error_norm < tol) {
-                    // Accept step
-                    t_curr += dt_curr
-                    for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
-                } // Otherwise do nothing; reject step
+                // if (error_norm < tol) {
+                //     // Accept step
+                //     t_curr += dt_curr;
+                //     for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
+                // } // Otherwise do nothing; reject step
+
+                for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
+                t_curr += dt_curr;
+
+                if (i == 0) {
+                    printf("Thread %d, step %d: old dt_curr: %f\n", i, n_steps, dt_curr);
+                }
                 
                 // Compute next time step
-                dt_curr = min(dt_curr * powf(tol / error_norm, 0.2), tf - dt_curr);
+                dt_curr = min(dt_curr * powf(tol / error_norm, 0.2), tf - t_curr);
+
+                if (i == 0) {
+                    printf("Thread %d, step %d: new dt_curr: %f\n", i, n_steps, dt_curr);
+                }
+
+                n_steps += 1;
             }
 
             // After time stepping is complete, update global state

@@ -42,7 +42,7 @@ class BatchedODESolver:
             self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), self.y, self.params))
             self.t += dt
         elif solver == 'rk23_multistep':
-            self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), np.float32(100*dt), self.y, self.params, np.float32(1e-6)))
+            self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), np.float32(100*dt), self.y, self.params, np.float32(1e-3)))
             self.t = 100 * dt
         cp.cuda.Device().synchronize()
 
@@ -159,7 +159,7 @@ def strong_scaling_forward_euler_multistep_kernel():
 
 def strong_scaling_rk23_kernel():
 
-    n_odes_vec = 1000000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
+    n_odes_vec = 1000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
     n_vars = 5
     n_params = 1
     time_vec = []
