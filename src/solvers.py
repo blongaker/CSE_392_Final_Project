@@ -128,7 +128,7 @@ extern "C" {
             float y[$N_VARS$];
             float p[$N_PARAMS$];
 
-            // 1. Load current state and parameters into registers
+            // Load current state and parameters into registers
             for(int d=0; d < $N_VARS$; d++) y[d] = y_all[ode_offset + d];
             for(int j=0; j < $N_PARAMS$; j++) p[j] = params[param_offset + j];
 
@@ -139,7 +139,8 @@ extern "C" {
             float k2[$N_VARS$];
             float k3[$N_VARS$];
             float k4[$N_VARS$];
-            float error[$N_VARS$];
+            float error_norm;
+            float y_next[$N_VARS$];
             while (t_curr < tf) {
                 // Compute RHS
                 rhs(k1, t_curr, y, p);
@@ -147,19 +148,27 @@ extern "C" {
                 rhs(k3, t_curr + 0.75 * dt_curr, y + 0.75 * dt_curr * k2, p);
 
                 // Update current state
-                for(int d=0; d < $N_VARS$; d++) y[d] += dt * (2*k1[d]+3*k2[d]+4*k3[d]) / 9;
-            
-                // Update time
-                t_curr += dt_curr;
+                for(int d=0; d < $N_VARS$; d++) y_next[d] = y[d] + dt * (2*k1[d]+3*k2[d]+4*k3[d]) / 9;
 
-                // Compute error and next time step
-                rhs(k4, t_curr + dt_curr, y, p);
+                // Compute error
+                rhs(k4, t_curr + dt_curr, y_next, p);
                 for(int d=0; d < $N_VARS$; d++)
-                    error[d] = dt_curr * (-5*k1[d]+6*k2[d]+8*k3[d]-9*k4[d]) / 72;
-                dt_curr = 0.9 * dt_curr * powf(tol / error, 0.2);
+                    error_norm += dt_curr * (-5*k1[d]+6*k2[d]+8*k3[d]-9*k4[d]) / 72;
+                error_norm = powf(error_norm, 0.5)
+
+                // Accept or reject solution based on error_norm
+                // Introducing thread divergence here
+                if (error_norm < tol) {
+                    // Accept step
+                    t_curr += dt_curr
+                    for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
+                } // Otherwise do nothing; reject step
+                
+                // Compute next time step
+                dt_curr *= powf(tol / error_norm, 0.2);
             }
 
-            // Update state
+            // After time stepping is complete, update global state
             for(int d=0; d < $N_VARS$; d++) y_all[ode_offset + d] = y[d];
 
         }
