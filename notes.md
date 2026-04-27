@@ -19,11 +19,21 @@ for multiple sets of initial conditions and parameters $\{\mathbf{x}_0, \mathbf{
 
 ___Saturday___: created a basic explicit (forward Euler) batched ODE solver. Each thread on the GPU handles a single ODE.
 
-___Sunday:
+___Sunday___:
 - Started putting together slides for presentation
 - Compare the now existing code with launching a time stepping loop inside each kernel. Which is faster? Profile and put these results in a table.
-- Implement a variable time stepper (RK23?)
-- How to parallelize this effectively?
+- Implemented a variable time stepper
+
+___MONDAY TODO___:
+- Debug and run the adaptive time stepping code
+- Can we get better parallel performance?
     - Cluster initial conditions and parameters
     - Sort the ICs/params so that similar equations are together in blocks
     - Launch similar equations in a single warp so that time steps are the same.
+
+___TUESDAY TODO___:
+- Put together slides
+- Benchmark performance
+
+___WEDNESDAY TODO___:
+- Final touches
