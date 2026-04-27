@@ -165,5 +165,3 @@ extern "C" {
 '''
         super().__init__(forward_euler_cuda_code_template, rhs_code, n_odes, n_vars, n_params)
 
-
-
