@@ -1,7 +1,8 @@
 import cupy as cp
 import numpy as np
-from solvers import ODESolver, ForwardEulerSolver
+from solvers import ODESolver, ForwardEulerSolver, ForwardEulerSolverMultistep, RK23SolverVarstep
 import time
+import matplotlib.pyplot as plt
 
 
 class BatchedODESolver:
@@ -31,12 +32,19 @@ class BatchedODESolver:
         self.timestep_kernel = solver.ode_solver_raw_module.get_function('timestep_kernel')
 
 
-    def launch(self, dt: float, threads: int = 256):
+    def launch(self, dt: float, threads: int = 256, solver='forward_euler_multistep'):
         # Launch the Kernel for a single step
         blocks = (self.n_odes + threads - 1) // threads
-        self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), self.y, self.params))
+        if solver == 'forward_euler_multistep':
+            self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), np.float32(100*dt), self.y, self.params))
+            self.t = 100 * dt
+        elif solver == 'forward_euler_singlestep':
+            self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), self.y, self.params))
+            self.t += dt
+        elif solver == 'rk23_multistep':
+            self.timestep_kernel((blocks,), (threads,), (np.float32(self.t), np.float32(dt), np.float32(100*dt), self.y, self.params, np.float32(1e-6)))
+            self.t = 100 * dt
         cp.cuda.Device().synchronize()
-        self.t += dt
 
 
 lorenz96 = '''
@@ -83,7 +91,7 @@ def lorenz96_example():
 
 def strong_scaling_forward_euler_singlestep_kernel():
 
-    n_odes_vec = [10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000]
+    n_odes_vec = 1000000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
     n_vars = 5
     n_params = 1
     time_vec = []
@@ -99,11 +107,86 @@ def strong_scaling_forward_euler_singlestep_kernel():
         # Batched ODE Solve
         forward_euler_solver = ForwardEulerSolver(lorenz96, n_odes, n_vars, n_params)
         batched_ode_solver = BatchedODESolver(forward_euler_solver, 0, y, p)
-        batched_ode_solver.launch(dt=0.1)
+        for _ in range(100):
+            batched_ode_solver.launch(dt=0.01, solver='rk23_singlestep')
 
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
         time_vec.append(elapsed_time)
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.semilogx(n_odes_vec, time_vec, '-or')
+    ax.set_xlabel('Number of ODEs')
+    ax.set_ylabel('Time elapsed (seconds)')
+    ax.set_title('Strong Scaling, ForwardEulerSolverSinglestep (but launching the kernel for many steps)')
+    fig.savefig('figs/strong_scaling_forward_euler_kernel_singlestep.png')
+
+
+
+def strong_scaling_forward_euler_multistep_kernel():
+
+    n_odes_vec = 1000000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
+    n_vars = 5
+    n_params = 1
+    time_vec = []
+
+    for n_odes in n_odes_vec:
+
+        # Generate initial condition data
+        y = cp.random.uniform(-5, 5, (n_odes, n_vars), dtype=cp.float32) # type: ignore
+        p = cp.random.uniform( 1, 5, (n_odes, n_params), dtype=cp.float32) # type: ignore
+
+        start_time = time.perf_counter()
+
+        # Batched ODE Solve
+        forward_euler_solver = ForwardEulerSolverMultistep(lorenz96, n_odes, n_vars, n_params)
+        batched_ode_solver = BatchedODESolver(forward_euler_solver, 0, y, p)
+        batched_ode_solver.launch(dt=0.01, solver='rk23_multistep')
+
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        time_vec.append(elapsed_time)
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.semilogx(n_odes_vec, time_vec, '-or')
+    ax.set_xlabel('Number of ODEs')
+    ax.set_ylabel('Time elapsed (seconds)')
+    ax.set_title('Strong Scaling, ForwardEulerSolverMultistep (launching the kernel once, doing time stepping in the kernel)')
+    fig.savefig('figs/strong_scaling_forward_euler_kernel_multistep.png')
+
+    
+
+
+def strong_scaling_rk23_kernel():
+
+    n_odes_vec = 1000000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
+    n_vars = 5
+    n_params = 1
+    time_vec = []
+
+    for n_odes in n_odes_vec:
+
+        # Generate initial condition data
+        y = cp.random.uniform(-5, 5, (n_odes, n_vars), dtype=cp.float32) # type: ignore
+        p = cp.random.uniform( 1, 5, (n_odes, n_params), dtype=cp.float32) # type: ignore
+
+        start_time = time.perf_counter()
+
+        # Batched ODE Solve
+        rk23_solver = RK23SolverVarstep(lorenz96, n_odes, n_vars, n_params)
+        batched_ode_solver = BatchedODESolver(rk23_solver, 0, y, p)
+        batched_ode_solver.launch(dt=0.01, solver='rk23_multistep')
+
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        time_vec.append(elapsed_time)
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.semilogx(n_odes_vec, time_vec, '-or')
+    ax.set_xlabel('Number of ODEs')
+    ax.set_ylabel('Time elapsed (seconds)')
+    ax.set_title('Strong Scaling, RK23Multistep')
+    fig.savefig('figs/strong_scaling_rk23_kernel.png')
 
     
 
@@ -112,6 +195,7 @@ def strong_scaling_forward_euler_singlestep_kernel():
 
 
 if __name__ == '__main__':
-    lorenz96_example()
-
-
+    # lorenz96_example()
+    # strong_scaling_forward_euler_singlestep_kernel()
+    # strong_scaling_forward_euler_multistep_kernel()
+    strong_scaling_rk23_kernel()
