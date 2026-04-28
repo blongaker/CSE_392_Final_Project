@@ -24,17 +24,17 @@ ___Sunday___:
 - Compare the now existing code with launching a time stepping loop inside each kernel. Which is faster? Profile and put these results in a table.
 - Implemented a variable time stepper
 
-___MONDAY TODO___:
-- Debug and run the adaptive time stepping code
-- Can we get better parallel performance?
-    - Cluster initial conditions and parameters
-    - Sort the ICs/params so that similar equations are together in blocks
-    - Launch similar equations in a single warp so that time steps are the same.
+___Monday___:
+- Debugged and tested variable time stepper
+- Wrote serial code for comparison (batched Python code, implemented my own time steppers for comparison)
+- Bug fixed the GPU RK23 solver
+
 
 ___TUESDAY TODO___:
 - Put together slides
 - Benchmark performance
 - Compare to serial Python code
+- Write implicit solver?
 
 ___WEDNESDAY TODO___:
 - Final touches

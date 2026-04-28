@@ -1,6 +1,7 @@
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
 
 def lorenz96(t, X, F):
     """
@@ -20,6 +21,14 @@ def lorenz96(t, X, F):
     return (x_plus_1 - x_minus_2) * x_minus_1 - X + F
 
 
+def lorenz96_wrapper(t, x, F, N, d):
+    return lorenz96(t, x.reshape(N, d), F).flatten()
+
+
+def lorenz96_single(t, x, F):
+    return (np.roll(x, -1) - np.roll(x, 2)) * np.roll(x, 1) - x + F
+
+
 # Constant time step
 def forward_euler(t0: float, dt: float, tf: float, fun, y0: np.ndarray):
     t_curr = t0
@@ -30,7 +39,7 @@ def forward_euler(t0: float, dt: float, tf: float, fun, y0: np.ndarray):
     return y_curr
 
 
-def rk23_batched(t0, dt0, tf, fun, y0: np.ndarray, tol=1e-3):
+def rk23_batched(t0, dt0, tf, fun, y0: np.ndarray, tol=1e-2):
     
     # Initialize
     N, d = y0.shape
@@ -58,15 +67,14 @@ def rk23_batched(t0, dt0, tf, fun, y0: np.ndarray, tol=1e-3):
 
         # Update time step sizes
         stepping_complete = (t_curr + dt_curr) >= tf
-        dt_curr[stepping_complete] = 0
-        t_curr[stepping_complete] = tf
-        dt_curr *= (tol / (error_norm[:, np.newaxis] + 1e-6)) ** 0.2
-        t_curr += dt_curr
+        error_norm[stepping_complete.flatten()] = 1
+        t_curr[step_acceptable] += dt_curr[step_acceptable]
+        dt_curr *= 0.9 * (tol / (error_norm[:, np.newaxis])) ** (1/3)
+        dt_curr = np.minimum(dt_curr, tf - t_curr)
+
 
     return y_curr
 
-
-    
 
 
 def lorenz96_sim_cpu_serial(method='forward_euler', N=10000, d=5, dt=0.01, print_output=False):
@@ -78,15 +86,22 @@ def lorenz96_sim_cpu_serial(method='forward_euler', N=10000, d=5, dt=0.01, print
     tspan = [0.0, 1.0]
 
     # Advance time step
-    print(y0)
     start_time = time.perf_counter()
     if method == 'forward_euler': 
-        yf = forward_euler(tspan[0], dt, tspan[1], lambda t,x: lorenz96(t,x,p), y0)
+        yf = forward_euler(tspan[0], dt, tspan[1], lambda t,x: lorenz96(t,x,p), y0.copy())
     elif method == 'rk23_batched':
-        yf = rk23_batched(tspan[0], dt, tspan[1], lambda t,x: lorenz96(t,x,p), y0)
+        yf = rk23_batched(tspan[0], dt, tspan[1], lambda t,x: lorenz96(t,x,p), y0.copy())
 
     end_time = time.perf_counter()
-    print(yf)
+
+    # Compare to ode23
+    # start_time = time.perf_counter()
+    # sol = solve_ivp(lambda t,x: lorenz96_single(t,x,p[0]), tspan, y0[0], rtol=1e-6, method='RK23')
+    # print(f'Scipy solver state at final time: {sol.y[:,-1]}')
+    # end_time = time.perf_counter()
+    # print(end_time - start_time)
+    # print(f'My solver at final time: {yf[0]}')
+
     time_elapsed = end_time - start_time
     if print_output is True:
         print(f'Total time: {time_elapsed} seconds')
@@ -96,7 +111,7 @@ def lorenz96_sim_cpu_serial(method='forward_euler', N=10000, d=5, dt=0.01, print
 
 def lorenz96_batched_scaling_test(method='forward_euler', d=5, dt=0.01):
     
-    Nvec = 100000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
+    Nvec = 10000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
     time_vec = []
 
     for N in Nvec:
@@ -108,10 +123,11 @@ def lorenz96_batched_scaling_test(method='forward_euler', d=5, dt=0.01):
     ax.set_xlabel('Number of ODEs')
     ax.set_ylabel('Time elapsed (seconds)')
     ax.set_title('Strong Scaling, CPU')
-    fig.savefig('figs/strong_scaling_forward_euler_cpu.png')
+    fig.savefig(f'figs/strong_scaling_{method}_cpu.png')
 
 
 
 if __name__ == '__main__':
-    lorenz96_sim_cpu_serial(method='rk23_batched', N=10000, d=5, dt=0.01)
+    # lorenz96_sim_cpu_serial(method='rk23_batched', N=200000, d=5, dt=0.01)
+    lorenz96_batched_scaling_test(method='rk23_batched', d=5, dt=0.01)
     # lorenz96_batched_scaling_test(method='forward_euler', d=5, dt=0.01)
