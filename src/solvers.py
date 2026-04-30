@@ -141,14 +141,9 @@ extern "C" {
             float k4[$N_VARS$];
             float error_norm;
             float y_next[$N_VARS$];
-            int n_steps = 0;
 
             // Begin timestepping
-            while (t_curr < tf && n_steps < 20) {
-
-                if (i == 0) {
-                    printf("Thread %d, step %d: t_curr = %f\n", i, n_steps, t_curr);
-                }
+            while (t_curr < tf) {
 
                 // Compute RHS
                 // Use the registers (y_next) we have already allocated for later
@@ -174,17 +169,11 @@ extern "C" {
                     // Accept step
                     t_curr += dt_curr;
                     for(int d=0; d < $N_VARS$; d++) y[d] = y_next[d];
-                    t_curr += dt_curr
-                } // Otherwise do nothing; reject step
+                }
+                // Otherwise do nothing; reject step
                 
                 // Compute next time step
-                dt_curr = min(dt_curr * powf(tol / (error_norm + 1.0e-6), 0.2), tf - t_curr);
-
-                if (i == 0) {
-                    printf("Thread %d, step %d: new dt_curr: %f\n", i, n_steps, dt_curr);
-                }
-
-                n_steps += 1;
+                dt_curr = min(0.9 * dt_curr * powf(tol / error_norm, 0.5), tf - t_curr);
             }
 
             // After time stepping is complete, update global state
