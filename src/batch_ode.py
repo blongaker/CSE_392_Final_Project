@@ -125,7 +125,7 @@ def strong_scaling_forward_euler_singlestep_kernel():
 
 def strong_scaling_forward_euler_multistep_kernel():
 
-    n_odes_vec = 1000000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
+    n_odes_vec = 100000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
     n_vars = 5
     n_params = 1
     time_vec = []
@@ -146,6 +146,7 @@ def strong_scaling_forward_euler_multistep_kernel():
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
         time_vec.append(elapsed_time)
+        print(f'{n_odes} ODES: {elapsed_time} seconds')
 
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.semilogx(n_odes_vec, time_vec, '-or')
@@ -196,6 +197,6 @@ def strong_scaling_rk23_kernel():
 
 if __name__ == '__main__':
     # lorenz96_example()
-    strong_scaling_forward_euler_singlestep_kernel()
+    # strong_scaling_forward_euler_singlestep_kernel()
     strong_scaling_forward_euler_multistep_kernel()
     # strong_scaling_rk23_kernel()

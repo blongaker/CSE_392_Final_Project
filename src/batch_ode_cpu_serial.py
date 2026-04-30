@@ -111,23 +111,23 @@ def lorenz96_sim_cpu_serial(method='forward_euler', N=10000, d=5, dt=0.01, print
 
 def lorenz96_batched_scaling_test(method='forward_euler', d=5, dt=0.01):
     
-    Nvec = 10000 * np.array([1, 2, 4, 8, 16, 32, 64, 128, 256])
+    Nvec = 100000 * np.array([1, 10, 100])
     time_vec = []
 
     for N in Nvec:
         time = lorenz96_sim_cpu_serial(method, N, d, dt, False)
         time_vec.append(time)
+        print(f'{N} ODEs: {time} seconds')
 
     fig, ax = plt.subplots(figsize=(10, 8))
     ax.plot(Nvec, time_vec, '-or')
     ax.set_xlabel('Number of ODEs')
     ax.set_ylabel('Time elapsed (seconds)')
     ax.set_title('Strong Scaling, CPU')
-    fig.savefig(f'figs/strong_scaling_{method}_cpu.png')
+    # fig.savefig(f'figs/strong_scaling_{method}_cpu.png')
 
 
 
 if __name__ == '__main__':
     # lorenz96_sim_cpu_serial(method='rk23_batched', N=200000, d=5, dt=0.01)
     lorenz96_batched_scaling_test(method='rk23_batched', d=5, dt=0.01)
-    # lorenz96_batched_scaling_test(method='forward_euler', d=5, dt=0.01)
