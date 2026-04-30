@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.16.0 (TeX Live 2023)  (format=lualatex 2023.8.20)  27 APR 2026 13:33
+This is LuaHBTeX, Version 1.16.0 (TeX Live 2023)  (format=lualatex 2023.8.20)  30 APR 2026 00:39
  restricted system commands enabled.
  file:line:error style messages enabled.
 **"/Users/blongaker/Documents/School Stuff/CSE 392 Parallel Algorithms/Project/CSE_392_Final_Project/presentation/presentation"
@@ -1525,7 +1525,7 @@ File: translations-basic-dictionary-english.trsl (english translation file `tran
 )
 Package translations Info: loading dictionary `translations-basic-dictionary' for `english'. on input line 58.
  (./presentation.nav)
-<ut_logo.png, id=21, 501.875pt x 501.875pt>
+<ut_logo.png, id=25, 501.875pt x 501.875pt>
 File: ut_logo.png Graphic file (type png)
 <use ut_logo.png>
 Package luatex.def Info: ut_logo.png  used on input line 59.
@@ -1573,29 +1573,89 @@ LaTeX Font Info:    Font shape `TU/FiraSansLight(0)/bx/it' in size <10.95> not a
 ] [4
 
 ]
-Overfull \vbox (22.24065pt too high) detected at line 45
+Overfull \vbox (22.24065pt too high) detected at line 46
  []
 
 [5
 
 ] [6
 
-]) (./simple_batched_ode.tex [7
+]) (./parallel.tex [7
+
+]
+Overfull \vbox (27.02612pt too high) detected at line 18
+ []
+
+[8
 
 ]
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `FiraMono' (encoding: TU).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
- [8
+ [9
 
-] [9
+]) (./results.tex [10
 
-] [10
+]
+<../figs/Lorenz_96.svg.png, id=98, 3854.4pt x 2989.1675pt>
+File: ../figs/Lorenz_96.svg.png Graphic file (type png)
+<use ../figs/Lorenz_96.svg.png>
+Package luatex.def Info: ../figs/Lorenz_96.svg.png  used on input line 13.
+(luatex.def)             Requested size: 159.333pt x 123.5601pt.
 
-] [11
+Overfull \vbox (21.51686pt too high) detected at line 13
+ []
 
-] [12
+[11
+
+<../figs/Lorenz_96.svg.png>]
+<../figs/strong_scaling_forward_euler_cpu.png, id=107, 722.7pt x 578.16pt>
+File: ../figs/strong_scaling_forward_euler_cpu.png Graphic file (type png)
+<use ../figs/strong_scaling_forward_euler_cpu.png>
+Package luatex.def Info: ../figs/strong_scaling_forward_euler_cpu.png  used on input line 26.
+(luatex.def)             Requested size: 159.333pt x 127.46025pt.
+File: ../figs/strong_scaling_forward_euler_cpu.png Graphic file (type png)
+<use ../figs/strong_scaling_forward_euler_cpu.png>
+Package luatex.def Info: ../figs/strong_scaling_forward_euler_cpu.png  used on input line 26.
+(luatex.def)             Requested size: 159.333pt x 127.46025pt.
+
+Overfull \vbox (36.53918pt too high) detected at line 26
+ []
+
+[12
+
+<../figs/strong_scaling_forward_euler_cpu.png>]
+
+Package fontspec Info: Font family 'FiraSansLight(1)' created for font 'Fira
+(fontspec)             Sans Light' with options
+(fontspec)             [Ligatures=TeX,ItalicFont={Fira Sans Light
+(fontspec)             Italic},BoldFont={Fira Sans},BoldItalicFont={Fira Sans
+(fontspec)             Italic},Numbers={Monospaced}].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"FiraSansLight:mode=node;script=latn;language=dflt;+tlig;+tnum;"
+(fontspec)             - 'small caps'  (m/sc) with NFSS spec.:
+(fontspec)             <->"FiraSansLight:mode=node;script=latn;language=dflt;+tlig;+tnum;+smcp;"
+(fontspec)             - 'bold' (b/n) with NFSS spec.:
+(fontspec)             <->"FiraSans:mode=node;script=latn;language=dflt;+tlig;+tnum;"
+(fontspec)             - 'bold small caps'  (b/sc) with NFSS spec.:
+(fontspec)             <->"FiraSans:mode=node;script=latn;language=dflt;+tlig;+tnum;+smcp;"
+(fontspec)             - 'italic' (m/it) with NFSS spec.:
+(fontspec)             <->"FiraSansLightItalic:mode=node;script=latn;language=dflt;+tlig;+tnum;"
+(fontspec)             - 'italic small caps'  (m/scit) with NFSS spec.:
+(fontspec)             <->"FiraSansLightItalic:mode=node;script=latn;language=dflt;+tlig;+tnum;+smcp;"
+(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
+(fontspec)             <->"FiraSansItalic:mode=node;script=latn;language=dflt;+tlig;+tnum;"
+(fontspec)             - 'bold italic small caps'  (b/scit) with NFSS spec.:
+(fontspec)             <->"FiraSansItalic:mode=node;script=latn;language=dflt;+tlig;+tnum;+smcp;"
+
+ [13
+
+] [14
 
 ])
 \tf@nav=\write6
@@ -1609,23 +1669,23 @@ Package microtype Info: Loading generic protrusion settings for font family
 \openout8 = presentation.snm
  (./presentation.aux)
 Package rerunfilecheck Info: File `presentation.out' has not changed.
-(rerunfilecheck)             Checksum: E457A0ED0263EDFCEB057D5C68D1F163;500.
+(rerunfilecheck)             Checksum: 30B91443CFF333161D7D01204C4626E8;417.
 )
 
 Here is how much of LuaTeX's memory you used:
- 48483 strings out of 478285
+ 48568 strings out of 478285
  125031,1977958 words of node,token memory allocated
- 947 words of node memory still in use:
-   13 hlist, 6 vlist, 2 rule, 1 local_par, 11 glue, 4 kern, 8 penalty, 3 glyph, 49 attribute, 72 glue_spec, 26 attribute_list, 4 write, 1 pdf_action, 4 pdf_colorstack nodes
-   avail lists: 1:4,2:1042,3:202,4:290,5:383,6:31,7:2316,8:33,9:740,10:17,11:111
- 66685 multiletter control sequences out of 65536+600000
- 135 fonts using 26089975 bytes
+ 6087 words of node memory still in use:
+   54 hlist, 9 vlist, 6 rule, 15 disc, 8 local_par, 2 math, 161 glue, 64 kern, 31 penalty, 5 margin_kern, 269 glyph, 349 attribute, 72 glue_spec, 176 attribute_list, 4 write, 28 pdf_literal, 56 pdf_colorstack nodes
+   avail lists: 1:8,2:565,3:142,4:224,5:359,6:23,7:1886,8:33,9:692,10:18,11:108
+ 66740 multiletter control sequences out of 65536+600000
+ 136 fonts using 26554527 bytes
  128i,13n,131p,2011b,853s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraMono-Regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/lm/lmroman8-regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-LightItalic.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/lm/lmromandemi10-regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-Light.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-Regular.otf></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on presentation.pdf (12 pages, 181477 bytes).
+</usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraMono-Regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/lm/lmroman8-regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-LightItalic.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/lm/lmromandemi10-regular.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-Light.otf></usr/local/texlive/2023/texmf-dist/fonts/opentype/public/fira/FiraSans-Regular.otf></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2023/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
+Output written on presentation.pdf (14 pages, 1483173 bytes).
 
-PDF statistics: 170 PDF objects out of 1000 (max. 8388607)
- 121 compressed objects within 2 object streams
- 28 named destinations out of 1000 (max. 131072)
- 32 words of extra memory for PDF output out of 10000 (max. 100000000)
+PDF statistics: 193 PDF objects out of 1000 (max. 8388607)
+ 137 compressed objects within 2 object streams
+ 33 named destinations out of 1000 (max. 131072)
+ 40 words of extra memory for PDF output out of 10000 (max. 100000000)
 

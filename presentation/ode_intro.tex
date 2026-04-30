@@ -16,7 +16,7 @@ $\by(t)$: state vector, $\bp$: vector of fixed parameters. Goal: given \underlin
 \end{frame}
 
 \begin{frame}{Time Stepping}
-The two most simple time integrators are \textbf{forward} and \textbf{backward Euler}:
+The simplest time-stepping algorithm is \textbf{forward Euler}:
 \begin{gather}
 \by_{k+1} = \by_k + \Delta t \cdot f(t_k, \by_k; \bp) \tag{FE} \\
 \by_{k+1} = \by_k + \Delta t \cdot f(t_k, \by_{k+1}; \bp)\label{eq:BE} \tag{BE} 
@@ -24,9 +24,10 @@ The two most simple time integrators are \textbf{forward} and \textbf{backward E
 
 
 \begin{itemize}
-    \item Both extremely simple to implement, assuming the time step is fixed.\ \eqref{eq:BE} requires a nonlinear equation solver. To parallelize: solve one ODE per thread.
-    \item As $\Delta t \to 0$, the numerical solution approaches the true solution.
-    \item These are examples of \textbf{first-order methods}: the error of the solution decreases at a linear rate.
+    \item This is a \textbf{first-order method}: as $\Delta t \to 0$, the error of the solution decreases at a linear rate.
+    \item Extremely simple to implement, assuming the time step is fixed.
+    \item Extremely easy to implement and parallelize.
+    
 \end{itemize}
 \end{frame}
 
@@ -48,10 +49,8 @@ In most applications, we would like to change the time step to match the dynamic
     \item If $\|e_{k+1}\| > \epsilon_{\mathrm{tol}}$, we shrink the time step and recompute. In either case we compute a new time step to use for the next:
 \end{itemize}
 $$\Delta t^{(k+1)} = \Delta t^{(k)} * \left(\frac{\epsilon_{\mathrm{tol}}}{\|e_{k+1}\|}\right)^{0.2}.$$
-\textbf{Interesting GPU problems:}
+\textbf{This is more difficult to parallelize on a GPU since some threads may desynchronize.}
 \begin{itemize}
     \item If each ODE is solved on a single thread, some ODEs may reach $t_f$ faster than others. Hence many threads will remain idle while the others finish.
-    \item SIMT will break: we would like similar time steps to take place on the same block.
-    \item Solution: cluster the initial conditions and parameters. Sort these before launching, so that each warp contains ODEs that are similar to each other. This maxmimizes synchronization inside thread blocks.
 \end{itemize}
 \end{frame}

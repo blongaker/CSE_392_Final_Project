@@ -45,7 +45,7 @@
 \input{setup-plots.tex}
 
 
-\title{Solving Batched Initial Value Problems on GPUs}
+\title{A Batch Solver for Initial Value Problems on GPUs}
 \author{Ben Longaker\inst{1}}
 \institute[]{%
 	\inst{1} The University of Texas at Austin, Oden Institute for Computational Engineering and Sciences
@@ -64,14 +64,11 @@
 % From these, introduce the two basic time stepping methods
 \input{ode_intro.tex}
 
-% Step 1: build basic batched ODE solver. Explicit time stepping, constant step size, one ODE per thread
-\input{simple_batched_ode.tex}
+%%% Parallelism
+\input{parallel.tex}
 
-% Step 2: create a basic implicit time stepper.
+%%% Results
+\input{results.tex}
 
-% Step 3: introduce non-uniform time stepping
-% New time stepping method: RK23
-% Present challenges
-% 
 
 \end{document}

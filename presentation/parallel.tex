@@ -1,0 +1,39 @@
+\section{Parallel Algorithm}
+
+\begin{frame}{Parallel Algorithm}
+    
+\textbf{Idea: solve one ODE per thread.}
+\begin{itemize}
+\item For forward Euler, every ODE reaches the final time after the same number of iterations; no desync.
+\end{itemize}
+
+The work-depth model for this algorithm is extremely simple due to the embarrassingly parallel nature:
+\begin{itemize}
+\item \textbf{Work} (W): Let $N_{\mathrm{ODE}}$ be the number of ODEs we solve, $d$ the dimension (\# state variables) of each ODE, $T$ the number of time steps, and $q_{\mathrm{RHS}}$ the cost of evaluating a right-hand side. Then:
+$$W = O(N_{\mathrm{ODE}} \cdot d\cdot T \cdot q_{\mathrm{RHS}})$$
+\item \textbf{Depth} (D): Since each ODE is solved independently, the depth is the cost of solving a single ODE:
+$$D = O(d \cdot T \cdot q_{\mathrm{RHS}})$$
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Implementation}
+\begin{itemize}
+\item Use Python \texttt{CuPy} interface, with \textbf{Raw Kernels} for the solvers.
+\item To include custom RHS, embed function code directly into the CUDA kernel (written in C) before compiling.
+\begin{itemize}
+    \item Best of both worlds: \texttt{Python} for user interface, low-level \texttt{C} makes the solver extremely fast.
+\end{itemize}
+
+
+\item \textbf{Forward Euler:} each thread finishes at exactly the same time. Zero thread divergence.
+\item \textbf{RK23:} some threads finish computing before others. But during computing, each thread does exactly the same operations. 
+\begin{itemize}
+    \item For now, assume this is not an issue.
+\end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+
