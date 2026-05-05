@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from diffrax import diffeqsolve, ODETerm, Kvaerno3, Dopri5, PIDController
+from diffrax import diffeqsolve, ODETerm, Kvaerno3, Dopri5, ImplicitEuler, PIDController
 import time
 from scipy.integrate import solve_ivp
 import numpy as np
@@ -25,9 +25,9 @@ def lorenz96_np(t, x, F):
 # Define flowmap
 def lorenz96_flowmap_jax(y0, param):
     rhs = ODETerm(lorenz96_jax)
-    solver = Dopri5()
-    # solver = Kvaerno3()
-    controller = PIDController(rtol=1e-6, atol=1e-9)
+    # solver = Dopri5()
+    solver = Kvaerno3()
+    controller = PIDController(rtol=1e-3, atol=1e-3)
     sol = diffeqsolve(
         rhs,
         solver,
