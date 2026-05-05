@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from diffrax import diffeqsolve, ODETerm, Dopri5
+from diffrax import diffeqsolve, ODETerm, Kvaerno3, Dopri5, PIDController
 import time
 from scipy.integrate import solve_ivp
 import numpy as np
@@ -26,19 +26,31 @@ def lorenz96_np(t, x, F):
 def lorenz96_flowmap_jax(y0, param):
     rhs = ODETerm(lorenz96_jax)
     solver = Dopri5()
-    sol = diffeqsolve(rhs, solver, t0=0, t1=10, dt0=0.05, y0=y0, args=param)
+    # solver = Kvaerno3()
+    controller = PIDController(rtol=1e-6, atol=1e-9)
+    sol = diffeqsolve(
+        rhs,
+        solver,
+        t0=0,
+        t1=10,
+        dt0=0.05,
+        y0=y0,
+        args=param,
+        stepsize_controller=controller
+    )
     return sol.ys
 
 
+print(f'Default device for jax: {jax.default_backend()}')
+devices = jax.devices()
+print(f'Available devices: {devices}')
+
 # Create a batch of initial conditions
 key = jax.random.PRNGKey(42)
-N = 500000
-batch_y0 = jax.random.uniform(key, (N, 5), minval=-5.0, maxval=5.0)
+N = 100000
+d = 5
+batch_y0 = jax.random.uniform(key, (N, d), minval=-5.0, maxval=5.0)
 batch_p = jax.random.uniform(key, (N, 1), minval=1.0, maxval=5.0)
-
-test_row = 69
-print(f'Input state: {batch_y0[test_row]}')
-print(f'Input param: {batch_p[test_row]}')
 
 # 4. Use jax.vmap to batch the solve
 # in_axes=(None, None, None, None, None, 0, None) maps over y0 (the 6th argument)
@@ -58,11 +70,10 @@ fast_batch_solve(warmup_y0, warmup_p)
 start_time = time.perf_counter()
 results = fast_batch_solve(batch_y0, batch_p)
 end_time = time.perf_counter()
-print(f'Time taken: {end_time - start_time} seconds')
+time_elapsed = end_time - start_time
 
-# 'results.ys' will have shape (5, 100, 2)
+
 print(f'Result shape: {results.shape}')
-print(f'Result output state: {results[test_row]}')
 
 
 # Test the exact same thing with scipy
